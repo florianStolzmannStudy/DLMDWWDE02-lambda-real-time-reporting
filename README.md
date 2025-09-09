@@ -2,7 +2,7 @@
 
 Dieses Projekt implementiert die folgende **Lambda-Architektur** für ein Echtzeit-Reporting:
 
-<img src="./docs/architektur.png" width="600">
+![Architektur-Konzept](/docs/architektur.png)
 
 ## Architekturüberblick
 
@@ -72,7 +72,8 @@ Je nach System- und Netzwerkgeschwindigkeit kann dieses einige Minuten dauern.
   - Ein [Metriken-Dashboard](http://localhost:3000/d/e8d6b729-9137-42b6-a210-c03c67837355/lambda-real-time-reporting) ist als `dashboard.json` bereits im Projekt hinterlegt und wird automatisch bei Anwendungsstart provisioniert.
 
 ### Metriken-Dashboard:
-<img src="./docs/dashboard.png" alt="Dashboard Screenshot" width="600">
+
+![Dashboard Screenshot](/docs/dashboard.png)
 
 ---
 
