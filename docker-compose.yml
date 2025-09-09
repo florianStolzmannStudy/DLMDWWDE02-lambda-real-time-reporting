@@ -1,0 +1,151 @@
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      lambda-net:
+        aliases: [kafka]
+    restart: unless-stopped
+
+  hbase:
+    image: dajobe/hbase:latest
+    container_name: hbase
+    ports:
+      - "16010:16010"  # HBase Master Web UI
+      - "16020:16020"  # HBase RegionServer Web UI
+      - "16030:16030"  # HBase Thrift Server
+      - "2181:2181"    # ZooKeeper
+      - "8080:8080"    # HBase REST API
+      - "8085:8085"    # HBase REST API (alternative port)
+      - "9090:9090"    # HBase Thrift Server
+      - "9095:9095"    # HBase Thrift2 Server
+    environment:
+      - HBASE_CONF_hbase_rootdir=hdfs://localhost:8020/hbase
+      - HBASE_CONF_hbase_cluster_distributed=false
+      - HBASE_CONF_hbase_zookeeper_quorum=localhost:2181
+    volumes:
+      - hbase_data:/opt/hbase/data
+      - hbase_logs:/opt/hbase/logs
+    hostname: hbase
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'status' | hbase shell -n || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks: [lambda-net]
+
+  api_service:
+    container_name: api_service
+    build: ./api_service
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    networks: [lambda-net]
+
+  ingestion_layer:
+    build: ./ingestion_layer
+    environment:
+      - ENABLE_DAILY_TOPICS=true
+      - API_BASE=http://api_service:8000
+      - KAFKA_BROKER=kafka:9092
+      - STREAM_INTERVAL_SEC=1
+      - TOPIC_STREAM=taxi_stream
+    container_name: ingestion_layer
+    depends_on: [api_service, kafka]
+    volumes:
+      - ingestion_state:/state
+    networks: [lambda-net]
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  batch_layer:
+    build:
+      context: ./batch_layer
+      dockerfile: /kaggleimport.Dockerfile
+    volumes: [./data:/data:rw]
+    depends_on: [kafka, hbase, prometheus]
+    networks: [lambda-net]
+    restart: no
+
+  scheduler:
+    build:
+      context: ./batch_layer
+      dockerfile: /api_scheduler.Dockerfile
+    networks: [lambda-net]
+    depends_on: [ batch_layer, hbase ]
+
+  speed_layer:
+    build: ./speed_layer
+    ports: ["7000:7000"]
+    depends_on: [kafka, hbase]
+    networks: [lambda-net]
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: pushgateway
+    networks:
+      - lambda-net
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9091:9090"]
+    networks: [lambda-net]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+    networks: [lambda-net]
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+networks:
+  lambda-net:
+    driver: bridge
+
+volumes:
+  hbase_data:
+    driver: local
+  hbase_logs:
+    driver: local
+  ingestion_state:
+    driver: local
