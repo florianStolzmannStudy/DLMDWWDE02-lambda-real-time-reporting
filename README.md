@@ -33,9 +33,8 @@ Jede Komponente stellt relevante Aufruf-Metriken für den Monitoring-Stack zur V
 
 ## Monitoring & Sicherheit
 
-- **Prometheus** sammelt Metriken aus API, Speed-, Batch und Data-Ingestion-Layern. 
-- **Grafana** visualisiert Prometheus-Metriken wie Durchsatz, Latenzen und Event-Zahlen in einem Dashboard.
-- Die Umsetzung ist in einem internen "lambda-net"-Netzwerk erfolgt und Grafana verfügt über eine Benutzerauthentifizierung
+- **Prometheus** sammelt Metriken aus API, Speed-, Batch und Data-Ingestion-Layern. Der Aufruf wurde durch https und einer Basic-Auth abgesichert.
+- **Grafana** visualisiert Prometheus-Metriken wie Durchsatz, Latenzen und Event-Zahlen in einem Dashboard. Der Aufruf wurde durch eine Benutzerauthentifizierung abgesichert.
 
 ---
 
@@ -65,8 +64,11 @@ Je nach System- und Netzwerkgeschwindigkeit kann dieses einige Minuten dauern.
 
 ## Monitoring
 
-- **Prometheus**: [Prometheus-UI](http://localhost:9091)
-  - Der Health-Status der Komponenten ist unter  [Prometheus-UI-Status](http://localhost:9091/targets) aufrufbar. 
+- **Prometheus**: [Prometheus-UI](https://localhost:9091)
+  - Login: `admin / admin` - der default Passwort-Hash sollte in der [web-config.yml](monitoring/prometheus/web-config.yml) geändert werden.
+    - Mittels `docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 admin "WunschPasswort" | ForEach-Object { ($_ -split ':')[1] }` kann ein neuer Passwort-Hash erzeugt werden.
+  - SSL-Hinweis: Das Zertifikat ist lokal erstellt und muss im Browser einmalig akzeptiert werden.
+  - Der Health-Status der Komponenten ist unter  [Prometheus-UI-Status](https://localhost:9091/targets) aufrufbar. 
 - **Grafana**: [Grafana-UI](http://localhost:3000)  
   - Login: `admin / admin` - das Passwort muss beim ersten Login geändert werden.
   - Ein [Metriken-Dashboard](http://localhost:3000/d/e8d6b729-9137-42b6-a210-c03c67837355/lambda-real-time-reporting) ist als `dashboard.json` bereits im Projekt hinterlegt und wird automatisch bei Anwendungsstart provisioniert.
@@ -74,6 +76,9 @@ Je nach System- und Netzwerkgeschwindigkeit kann dieses einige Minuten dauern.
 ### Metriken-Dashboard:
 
 ![Dashboard Screenshot](/docs/dashboard.png)
+
+### Health-Status (https):
+![Prometheus HealthStatus](/docs/prometheusPullHealthStatus.png)
 
 ---
 
