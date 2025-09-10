@@ -44,7 +44,7 @@ Jede Komponente stellt relevante Aufruf-Metriken für den Monitoring-Stack zur V
 
 ```
 git clone https://github.com/florianStolzmannStudy/DLMDWWDE02-lambda-real-time-reporting.git
-cd lambda-real-time-reporting
+cd DLMDWWDE02-lambda-real-time-reporting
 ```
 
 ### 2. Installation und Start von Docker
