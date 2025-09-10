@@ -135,4 +135,4 @@ Die Zertifikate müssen daher **einmalig im Browser akzeptiert werden**
 
 - Mittels YML-Konfiguration können die Kafka-Komponenten, sowie die HBase-Datenbank je nach Bedarf manuell oder automatisch skaliert werden.
 - Über einen Prometheus-Alertmanager kann bei Bedarf ein Alerting auf Basis des Health-Status je Komponente implementiert werden, beispielsweise wenn eine Komponente nicht korrekt verfügbar (Status != OK) ist.
-- Bei Nutzung von Grafana als Dashboard müsste noch eine noSQL-`Data source` für den Zugriff auf HBase installiert und konfiguriert werden. 
+- Bei Nutzung von Grafana als Dashboard für das Echtzeit-Reporting müsste noch eine noSQL-`Data source` für den Zugriff auf HBase installiert und konfiguriert werden. 
