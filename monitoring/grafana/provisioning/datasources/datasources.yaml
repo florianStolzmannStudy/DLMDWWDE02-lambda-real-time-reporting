@@ -4,6 +4,12 @@ datasources:
     uid: PROMDS
     type: prometheus
     access: proxy
-    url: http://prometheus:9090
+    url: https://prometheus:9090
     isDefault: true
-    editable: true
+    basicAuth: true
+    basicAuthUser: admin
+    secureJsonData:
+      basicAuthPassword: admin
+    jsonData:
+      httpMethod: GET
+      tlsSkipVerify: true

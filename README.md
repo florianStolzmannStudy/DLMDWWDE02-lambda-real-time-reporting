@@ -62,23 +62,52 @@ Je nach System- und Netzwerkgeschwindigkeit kann dieses einige Minuten dauern.
 
 ---
 
-## Monitoring
+## Monitoring & Sicherheit
 
-- **Prometheus**: [Prometheus-UI](https://localhost:9091)
-  - Login: `admin / admin` - der default Passwort-Hash sollte in der [web-config.yml](monitoring/prometheus/web-config.yml) geändert werden.
-    - Mittels `docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 admin "WunschPasswort" | ForEach-Object { ($_ -split ':')[1] }` kann ein neuer Passwort-Hash erzeugt werden.
-  - SSL-Hinweis: Das Zertifikat ist lokal erstellt und muss im Browser einmalig akzeptiert werden.
-  - Der Health-Status der Komponenten ist unter  [Prometheus-UI-Status](https://localhost:9091/targets) aufrufbar. 
-- **Grafana**: [Grafana-UI](http://localhost:3000)  
-  - Login: `admin / admin` - das Passwort muss beim ersten Login geändert werden.
-  - Ein [Metriken-Dashboard](http://localhost:3000/d/e8d6b729-9137-42b6-a210-c03c67837355/lambda-real-time-reporting) ist als `dashboard.json` bereits im Projekt hinterlegt und wird automatisch bei Anwendungsstart provisioniert.
+Das Monitoring-System besteht aus **Prometheus** (Sammeln der Metriken) und **Grafana** (Visualisierung der Metriken).  
 
-### Metriken-Dashboard:
+Mit dem Tool-Set lässt sich jederzeit prüfen, ob die Komponenten laufen und wie viele Events verarbeitet werden.
 
-![Dashboard Screenshot](/docs/dashboard.png)
+- **Prometheus**
+  - Erfasst Metriken aus API-, Ingestion-, Speed- und Batch-Layer.
+  - Zugriff: [Prometheus-UI](https://localhost:9091)
+    - Login: `admin / admin` – das Passwort sollte in der [web-config.yml](monitoring/prometheus/web-config.yml) geändert werden.
+    - Neuen Passwort-Hash erstellen:
+      ```powershell
+      docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 admin "NeuesPasswort" | ForEach-Object { ($_ -split ':')[1] }
+      ```
+    - Health-Status der Komponenten: [Prometheus-Targets](https://localhost:9091/targets)
 
-### Health-Status (https):
-![Prometheus HealthStatus](/docs/prometheusPullHealthStatus.png)
+- **Grafana**
+  - Visualisiert Prometheus-Metriken wie **Durchsatz, Latenzen und Event-Zahlen**.
+  - Zugriff: [Grafana-UI](https://localhost:3000)
+    - Login: `admin / admin` – Passwort wird beim ersten Login geändert.
+    - Das vordefinierte Dashboard ([dashboard.json](monitoring/grafana/dashboards/dashboard.json)) wird beim Start automatisch provisioniert:  
+      Aufruf-Link: [Lambda-Reporting Dashboard](https://localhost:3000/d/e8d6b729-9137-42b6-a210-c03c67837355/lambda-real-time-reporting)
+
+### Hinweis zu SSL-Zertifikaten
+
+Die HTTPS-Aufrufe bei Prometheus und Grafana sind mit **selbst erstellten Zertifikaten** abgesichert.  
+Da diese nicht von einer offiziellen Zertifizierungsstelle signiert sind, zeigt der Browser beim ersten Aufruf eine Warnung an.  
+Dies ist in der lokalen Entwicklungsumgebung normal und die Verbindung ist trotzdem beim Aufruf verschlüsselt.
+
+Die Zertifikate müssen daher **einmalig im Browser akzeptiert werden** 
+
+1. Erweitert auswählen
+![Step 1: Sichere Verbindung zulassen](/docs/https1.png)
+2. Weiter zu 127.0.0.1 (unsicher)
+![Step 2: Sichere Verbindung zulassen](/docs/https2.png)
+
+---
+
+### Beispielansichten
+
+- **Metriken-Dashboard**  
+  ![Dashboard Screenshot](/docs/dashboard.png)
+
+- **Health-Status (Prometheus-Targets)**  
+  ![Prometheus HealthStatus](/docs/prometheusPullHealthStatus.png)
+
 
 ---
 
