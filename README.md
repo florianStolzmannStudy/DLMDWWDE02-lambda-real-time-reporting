@@ -2,7 +2,7 @@
 
 Dieses Projekt implementiert die folgende **Lambda-Architektur** für ein Echtzeit-Reporting:
 
-![Architektur-Konzept](/docs/architektur.png)
+![Architektur-Konzept](docs/architektur.png)
 
 ## Architekturüberblick
 
@@ -33,7 +33,7 @@ Jede Komponente stellt relevante Aufruf-Metriken für den Monitoring-Stack zur V
 
 ## Monitoring & Sicherheit
 
-- **Prometheus** sammelt Metriken aus API, Speed-, Batch und Data-Ingestion-Layern. Der Aufruf wurde durch https und einer Basic-Auth abgesichert.
+- **Prometheus** sammelt Metriken aus API, Speed-, Batch und Data-Ingestion-Layern. Der Aufruf wurde durch https und Basic-Auth abgesichert.
 - **Grafana** visualisiert Prometheus-Metriken wie Durchsatz, Latenzen und Event-Zahlen in einem Dashboard. Der Aufruf wurde durch eine Benutzerauthentifizierung abgesichert.
 
 ---
@@ -66,13 +66,13 @@ Je nach System- und Netzwerkgeschwindigkeit kann dieses einige Minuten dauern.
 
 Das Monitoring-System besteht aus **Prometheus** (Sammeln der Metriken) und **Grafana** (Visualisierung der Metriken).  
 
-Mit dem Tool-Set lässt sich jederzeit prüfen, ob die Komponenten laufen und wie viele Events verarbeitet werden.
+Mit dem Monitoring-Stack lässt sich jederzeit prüfen, ob die Komponenten laufen und wie viele Events verarbeitet werden.
 
 - **Prometheus**
   - Erfasst Metriken aus API-, Ingestion-, Speed- und Batch-Layer.
   - Zugriff: [Prometheus-UI](https://localhost:9091)
     - Login: `admin / admin` – das Passwort sollte in der [web-config.yml](monitoring/prometheus/web-config.yml) geändert werden.
-    - Neuen Passwort-Hash erstellen:
+    - Einen neuen Passwort-Hash erstellen:
       ```powershell
       docker run --rm httpd:2.4-alpine htpasswd -nbBC 12 admin "NeuesPasswort" | ForEach-Object { ($_ -split ':')[1] }
       ```
@@ -89,24 +89,24 @@ Mit dem Tool-Set lässt sich jederzeit prüfen, ob die Komponenten laufen und wi
 
 Die HTTPS-Aufrufe bei Prometheus und Grafana sind mit **selbst erstellten Zertifikaten** abgesichert.  
 Da diese nicht von einer offiziellen Zertifizierungsstelle signiert sind, zeigt der Browser beim ersten Aufruf eine Warnung an.  
-Dies ist in der lokalen Entwicklungsumgebung normal und die Verbindung ist trotzdem beim Aufruf verschlüsselt.
+Dies ist in der lokalen Entwicklungsumgebung normal und die Verbindung ist trotzdem verschlüsselt.
 
 Die Zertifikate müssen daher **einmalig im Browser akzeptiert werden** 
 
 1. Erweitert auswählen
-![Step 1: Sichere Verbindung zulassen](/docs/https1.png)
+![Step 1: Sichere Verbindung zulassen](docs/https1.png)
 2. Weiter zu 127.0.0.1 (unsicher)
-![Step 2: Sichere Verbindung zulassen](/docs/https2.png)
+![Step 2: Sichere Verbindung zulassen](docs/https2.png)
 
 ---
 
 ### Beispielansichten
 
 - **Metriken-Dashboard**  
-  ![Dashboard Screenshot](/docs/dashboard.png)
+  ![Dashboard Screenshot](docs/dashboard.png)
 
 - **Health-Status (Prometheus-Targets)**  
-  ![Prometheus HealthStatus](/docs/prometheusPullHealthStatus.png)
+  ![Prometheus HealthStatus](docs/prometheusPullHealthStatus.png)
 
 
 ---
@@ -129,10 +129,10 @@ Die Zertifikate müssen daher **einmalig im Browser akzeptiert werden**
 | API-Service   | [Health-Check](http://127.0.0.1:8000/health)     | Gibt den Status des API-Service zurück                                 |
 | API-Service   | [Timestamp-Stream](http://127.0.0.1:8000/stream) | Liefert einen aktuellen Zeitstempel (vom Ingestor konsumiert)          |
 | API-Service   | [Metrics-API](http://127.0.0.1:8000/metrics)     | Prometheus-Metriken des API-Services, z. B. `api_requests_total`       |
-| Serving-Layer | [HBase-UI](http://127.0.0.1:16010/)              | Zugriff auf die HBase-UI zum Zugriff auf die HBse-Server und -Tabellen | 
+| Serving-Layer | [HBase-UI](http://127.0.0.1:16010/)              | Zugriff auf die HBase-UI zum Zugriff auf die HBase-Server und -Tabellen | 
 
 ## Weiterführende Arbeiten
 
 - Mittels YML-Konfiguration können die Kafka-Komponenten, sowie die HBase-Datenbank je nach Bedarf manuell oder automatisch skaliert werden.
 - Über einen Prometheus-Alertmanager kann bei Bedarf ein Alerting auf Basis des Health-Status je Komponente implementiert werden, beispielsweise wenn eine Komponente nicht korrekt verfügbar (Status != OK) ist.
-- Bei Nutzung von Grafana als Dashboard für das Echtzeit-Reporting müsste noch eine noSQL-`Data source` für den Zugriff auf HBase installiert und konfiguriert werden. 
+- Bei Nutzung von Grafana als Dashboard für das Echtzeit-Reporting müsste noch eine NoSQL-`Data source` für den Zugriff auf HBase installiert und konfiguriert werden. 
